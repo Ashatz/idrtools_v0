@@ -3,14 +3,11 @@ import os
 from glob import glob
 import re
 
-api = win32com.client.Dispatch("idrisi32.IdrisiAPIServer")
-
-'''
-#Set project in Idrisi Explorer
-def setProject(path):
-        if path[-1] != '\\':
-                path = path+'\\'
-'''        
+try: #
+        api = win32com.client.Dispatch("idrisi32.IdrisiAPIServer")
+except: #
+        print "Error: please install an appropriate version of pywin32." #
+        sys.exit() #
 
 #Access working directory filepath
 workdir = api.GetWorkingDir()
@@ -25,14 +22,6 @@ for i in range(count):
 dirlist = []
 dirlist.append(workdir)
 dirlist.extend(resdirs)
-
-'''
-#Set default project
-projName = 'default'
-projPath = 'C:\\Python27\\Lib\\site-packages\\idrtools\\Projects\\'
-if
-project = projPath+projName+'.env\\'
-'''
 
 #Set default palette for file display
 palette = 'quant'
