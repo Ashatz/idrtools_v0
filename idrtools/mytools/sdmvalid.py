@@ -7,21 +7,26 @@ Continuous Index. This script was originally created on
 #Import string and Idrisi COM server
 from idrtools import *
 from idrtools.idrfiles import *
+from idrtools.modules import modules
 import os
 import shutil
 import numpy as np
-from scipy import stats
+from scipy.stats import spearmanr, norm #Edited 10/9/2013
 from glob import glob
 import csv
 import math
 
 #Create filepath for the trash directory
+project = IdrisiExplorer()
+workdir = project.workdir
+dirlist = project.dirlist
 dumpfile = workdir+'dump\\'
 #Create trash directory
 try:
     os.mkdir(dumpfile[:-1])
 except OSError:
     pass
+
 dirlist.append(dumpfile)
 
 class bcindex():
@@ -190,7 +195,7 @@ class bcindex():
             lbound = stats.norm.interval(alpha, average, sterr)[0]
             if lbound < 0:
                 lbound = 0
-            ubound = stats.norm.interval(alpha, average, sterr)[1]
+            ubound = norm.interval(alpha, average, sterr)[1] #Edited 10/9/2013
             outputMatrix.append([str(i+1), average, median, ran, lbound, ubound])
         return convertMatrix, outputMatrix
 
@@ -255,7 +260,7 @@ class bcindex():
             peList = self.peCalculation(hsmList[i], validList[i], saMask, biasfile, bclass, bwindow, outputPE)[0]
             peListFull.append(peList)
             outputlist.append(outputPE)
-            bciResults.append(stats.spearmanr(peList, range(1,int(bclass)+1))[0])
+            bciResults.append(spearmanr(peList, range(1,int(bclass)+1))[0])
             readRdc = open(workdir+outputlist[i]+'.RDC', 'r')
             rdc = readRdc.readlines()
             maxline = [rdc[16]]
