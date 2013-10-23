@@ -74,6 +74,43 @@ class modules():
             api.RunModule("EXTRACT", featinput+'*'+procinput+'*3*'+summarytype+'*'\
                           +output, 1, '', '', '', '', 1)
 
+    def genericraster(self, input, bands, output, format, interleaving, header_info, \
+                      header_size, trailer, data_size, swap_byte, out_reference):
+        format_dict = {'BIL':'1', 'BIP':'2', 'BSQ':'3'}
+        if str(format).isdigit() != True:
+            format = format_dict[str(format)]
+        #Add file prefix if there are multiple bands
+        if bands > 1:
+            output = output+input
+        if str(format) != '2':
+            interleaving = '0'
+        if type(out_reference) == str:
+            project = IdrisiExplorer()
+            dirlist = project.getProjectDirs()
+            file = findFile(out_reference, 'rst', dirlist)
+            doc = Documentation(file)
+            ref_list = [doc.Columns(), doc.Rows(), doc.RefSystem(), doc.RefUnits(), doc.MinX(),\
+                        doc.MaxX(), doc.MinY(), doc.MaxY(), doc.UnitDist()]
+        if type(out_reference) == list:
+            ref_list = out_reference
+        if data_size == 'B' or data_size == 'N':
+            swap_byte = 'N'
+        if header_info == '0':   
+            api.RunModule("GENERICRASTER", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(input, bands, output, format, interleaving, header_info, \
+                                                                                                 data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
+                                                                                                 ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
+                                                                                                 ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
+        elif header_info == '3':
+            api.RunModule("GENERICRASTER", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(input, bands, output, format, interleaving, header_info, header_size, \
+                                                                                                       trailer, data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
+                                                                                                       ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
+                                                                                                       ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
+        else:
+            api.RunModule("GENERICRASTER", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(input, bands, output, format, interleaving, header_info, \
+                                                                                                header_size, data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
+                                                                                                ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
+                                                                                                ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
+
             
     def geotiff(self, process, input, output=input, palette='greyscale'):
         process = str(process)
@@ -194,11 +231,11 @@ class modules():
 
 
     def reclass(self, filetype, input, output, outtype, classtype, rcl):
-        if filetype == 'raster' or filetype == 'rst':
+        if filetype == 'rst':
             intype = 'i'
-        if filetype == 'vector' or filetype == 'vct':
+        if filetype == 'vct':
             intype = 'v'
-        if filetype == 'attribute' or filetype == 'avl':
+        if filetype == 'avl':
             intype = 'a'
         
         try:
@@ -210,14 +247,15 @@ class modules():
         classtype = str(classtype)
         if classtype == '1':
             api.RunModule("RECLASS", '%s*%s*%s*1*%s*%s*%s*%s'%\
-                          (filetype, input, output, rcl[0], rcl[1], rcl[2], outtype)\
+                          (intype, input, output, rcl[0], rcl[1], rcl[2], outtype)\
                           , 1, '', '', '', '', 1)
         if classtype == '2':
-            tmprcl = writeRcl('tmprcl', workdir, rcl)
-            api.RunModule("RECLASS", filetype+'*'+input+'*'+output+'*3*'+tmprcl+'*'+outtype, \
+            out_dir = getDirectory(findFile(input, filetype, getDirectories()))
+            tmprcl = IdrisiFiles.WriteRcl('tmprcl', out_dir, rcl)
+            api.RunModule("RECLASS", '%s*%s*%s*%s*%s*%s'%(intype, input, output, 3, tmprcl, outtype), \
                           1, '', '', '', '', 1)
         if classtype == '3':
-            api.RunModule("RECLASS", filetype+'*'+input+'*'+output+'*1*'+rcl+'*'+outtype,\
+            api.RunModule("RECLASS", '%s*%s*%s*%s*%s*%s'%(intype, input, output, 1, rcl, outtype),\
                           1, '', '', '', '', 1)
 
     def scalar(self, input, output, operation, number):
