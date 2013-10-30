@@ -2,7 +2,7 @@ import os
 from glob import glob
 import re
 from sys import exit
-from shutil import rmtree
+from shutil import rmtree, move
 
 from idrtools import *
 
@@ -22,7 +22,7 @@ def openNewProject(path): #Created 9/26/2013
         projWrite = open(projPath, 'w')
         projWrite.write(path+'\\')
         projWrite.close()
-        projects.append(projName) #Added 10/01/2013
+        projects.append(projName[-1]) #Added 10/01/2013
         projects.sort()
 
 def getCurrentProject(project=default_project[0]):
@@ -36,12 +36,28 @@ def setCurrentProject(project=default_project[0]):
         #Changed 10/2/2013
         for line in lines:
                 if line[:18] == 'default_project = ':
-                        lines[lines.index(line)] = lines[lines.index(line)][:18]+'["%s"]'%(project)
+                        lines[lines.index(line)] = lines[lines.index(line)][:18]+'["%s"]\n'%(project)
         write_init_ = open(path, 'w')
         for line in lines:
                 write_init_.write(line)
         write_init_.close()
         default_project[0] = project
+
+#Updated 10/22/2013       
+def removeProject(project):
+        os.chdir(project_folder)
+        if project == default_project[0]:
+                print "Warning: unable to remove currently active project."
+        else:
+                if project in projects:
+                        del(projects[projects.index(project)])
+                        dump = addDumpDir(project_folder)
+                        project += '.env'
+                        move(project_folder+project, dump+project)
+                        removeDumpDir(dump)
+                else:
+                        print "Warning: input project does not exist."
+
 
         
 ################################################################################
@@ -78,13 +94,6 @@ def setDefaultProject2(project):
         project_path = project_folder+project+'.env'
         api.SetDefaultProjectFile(project_path)
 
-        
-def removeProject(project):
-        os.chdir(project_folder)
-        projPathList = [project for project in glob('*.env')]
-        projDict = {}
-        for project in projects:
-                projDict[project] = projPathList[projects.index(project)]
 
 ################################################################################        
         
@@ -111,27 +120,6 @@ def removeFileType(filetype):
                 del(filters[i])
 ###
 
-
-#These functions allow the creation of temporary "dump" directories for
-#for unnecessary intermediary files.
-                
-#Added 10/11/2013
-def addDumpDir(dir):
-        os.chdir(dir)
-        if dir[-1] != '\\':
-                dir += '\\'
-        dumpfile = dir + 'dump\\'
-        
-        try:
-                os.mkdir(dumpfile[:-1])
-        except OSError:
-                pass
-
-        return dumpfile
-
-#Added 10/11/2013
-def removeDumpDir(dumpdir):
-        rmtree(dumpdir)
 
 #This class allows for the creation of Idrisi Project Objects
 

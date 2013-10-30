@@ -28,6 +28,18 @@ class modules():
             api.RunModule("ARCRASTER", '4*'+input+'*'+output+'*'+integer+'*'+outref\
                           +'*'+outunit+'*'+outdist, 1, '', '', '', '', 1)
 
+    def area(self, input, output, out_format, unit_type):
+        unit_types = range(1,8)
+
+        try:
+            unit_types.index(unit_type)
+        except:
+            print "Warning: please input correct unit type."
+            exit()
+
+        api.RunModule("AREA", '%s*%s*%s*%s'%(input, out_format, unit_type, output), \
+                      1, '', '', '', '', 1)
+        
     def assign(self, input, avlfile, output):
         
         try:
@@ -38,6 +50,11 @@ class modules():
 
         api.RunModule("ASSIGN", '%s*%s*%s'%(input, output, avlfile), 1, '',\
                       '', '', '', 1)
+
+    def Buffer(self, input, output, target_val, buffer_val, non_buff_val, buff_width):
+        api.RunModule("BUFFER", '%s*%s*%s*%s*%s*%s'%(input, output, target_val, buffer_val,\
+                                                     non_buff_val, buff_width),\
+                      1, '', '', '', '', 1)
                
     def composite(self, blue, green, red, output, stretch='1', background='2', saturation='1', outType='3'):
         stretch=str(stretch)
@@ -63,6 +80,12 @@ class modules():
             api.RunModule("CONTOUR", '%s*%s*%s*%s*%s*%s*n'%\
                           (input, output, minimum, maximum, interval, generalize)\
                           , 1, '', '', '', '', 1)
+
+    def distance(input, output):
+        api.RunModule("DISTANCE", '%s*%s'%(input, output), 1, '', '', '', '', 1)
+
+    def expand(self, input, output, magnitude):
+        api.RunModule("EXPAND", '%s*%s*%s'%(input, output, magnitude), 1, '', '', '', '', 1)
 
     def extract(self, featinput, procinput, summarytype, outtype, output):
         summarytype = str(summarytype)
@@ -95,6 +118,7 @@ class modules():
             ref_list = out_reference
         if data_size == 'B' or data_size == 'N':
             swap_byte = 'N'
+
         if header_info == '0':   
             api.RunModule("GENERICRASTER", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(input, bands, output, format, interleaving, header_info, \
                                                                                                  data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
@@ -107,11 +131,10 @@ class modules():
                                                                                                        ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
         else:
             api.RunModule("GENERICRASTER", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(input, bands, output, format, interleaving, header_info, \
-                                                                                                header_size, data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
-                                                                                                ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
-                                                                                                ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
-
-            
+                                                                                                    header_size, data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
+                                                                                                    ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
+                                                                                                    ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
+        
     def geotiff(self, process, input, output=input, palette='greyscale'):
         process = str(process)
         if process == '1':
@@ -130,6 +153,21 @@ class modules():
         if outtype == '2':
             api.RunModule("EXTRACT", featinput+'*'+procinput+'*3*'+summarytype+'*'\
                           +output, 1, '', '', '', '', 1)
+
+    def initial(self, output, outtype, outfile, value, define, definition):
+        output = fixFile(output, 'rst')
+        if str(define) == '1':
+            definition = fixFile(definition, 'rst')
+            rdc = Documentation(definition)
+            api.RunModule("INITIAL", '%s*%s*%s*%s*%s*%s*%s'%(output, outtype, outfile, value, define, definition, rdc.RefUnits),\
+                          1, '', '', '', '', 1)
+        elif str(define) == '2':
+            api.RunModule("INITIAL", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(output, outtype, outfile, value, define,\
+                                                                                     definition[0], definition[1], definition[2], \
+                                                                                     definition[3], definition[4], definition[5], \
+                                                                                     definition[6], definition[7], definition[8],\
+                                                                                     definition[9])\
+                          , 1, '', '', '', '', 1)
 
     def metaupdate(self, intype, input, option, value):
         intype = str(intype)
@@ -159,25 +197,25 @@ class modules():
             shutil.move(rgfPath+rgfName, dumpfile+rgfName)
             shutil.rmtree(dumpfile)
 
-    def ortho(self, surface, output, resolution, drape=False, palette=palette, direction='#',\
+    def ortho(self, surface, output, resolution, drape=False, palette=default_palette[0], direction='#',\
               angle='#', exaggeration='#', newmin='#', newmax='#'):
+        project = IdrisiExplorer()
+        dirlist = project.getProjectDirs()
+        surface = findFile(surface, 'rst', dirlist)
         resolution = str(resolution)
         direction = str(direction)
         exaggeration=str(exaggeration)
         newmin=str(newmin)
         newmax=str(newmax)
-        if surface[-4:] != '.rst':
-            surface = surface+'.rst'
-        directory = findfile(surface, 'rst', dirlist)
-        if directory != None:
-            surface = directory+surface
         if drape==False:
             api.RunModule("ORTHO", surface+'*'+output+'*'+resolution+'*'+direction+\
                           '*'+angle+'*'+exaggeration+'*'+newmin+'*'+newmax, 1, ''\
                           , '', '', '', 1)
         else:
-            fileRdc = readDocFile(drape, 'RDC', dirlist)
-            if fileRdc['data type'] == 'RGB24':
+            filename = findFile(drape, 'rst', dirlist)
+            fileRdc = Documentation(filename)
+
+            if fileRdc.DataType() == 'RGB24':
                 api.RunModule("ORTHO", surface+'*'+output+'*'+resolution+'*'+direction+\
                               '*'+angle+'*'+exaggeration+'*'+newmin+'*'+newmax+'*'+\
                               drape+'*'+palette, 1, '', '', '', '', 1)
@@ -230,7 +268,7 @@ class modules():
                             1)
 
 
-    def reclass(self, filetype, input, output, outtype, classtype, rcl):
+    def reclass(self, filetype, input, output, outtype, classtype, rclist):
         if filetype == 'rst':
             intype = 'i'
         if filetype == 'vct':
@@ -242,20 +280,22 @@ class modules():
             intype in 'iva'
         except:
             print "Error, %s is not an appropriate file type."%(filetype)
-            sys.exit()
+            exit()
         
         classtype = str(classtype)
         if classtype == '1':
-            api.RunModule("RECLASS", '%s*%s*%s*1*%s*%s*%s*%s'%\
-                          (intype, input, output, rcl[0], rcl[1], rcl[2], outtype)\
+            print "Sorry not available yet."
+            '''
+            api.RunModule("RECLASS", '%s*%s*%s*%s*%s*%s*%s*%s'%\
+                          (intype, input, output, 1, rclist[0], rclist[1], rclist[2], outtype)\
                           , 1, '', '', '', '', 1)
-        if classtype == '2':
-            out_dir = getDirectory(findFile(input, filetype, getDirectories()))
-            tmprcl = IdrisiFiles.WriteRcl('tmprcl', out_dir, rcl)
-            api.RunModule("RECLASS", '%s*%s*%s*%s*%s*%s'%(intype, input, output, 3, tmprcl, outtype), \
+            '''
+        if str(classtype) == '2':
+            tmprcl = IdrisiFiles.WriteRcl('tmprcl', getDirectories()[0], rclist)
+            api.RunModule("RECLASS", intype+'*'+input+'*'+output+'*3*'+tmprcl+'*'+str(outtype), \
                           1, '', '', '', '', 1)
         if classtype == '3':
-            api.RunModule("RECLASS", '%s*%s*%s*%s*%s*%s'%(intype, input, output, 1, rcl, outtype),\
+            api.RunModule("RECLASS", intype+'*'+input+'*'+output+'*1*'+rclist+'*'+outtype,\
                           1, '', '', '', '', 1)
 
     def scalar(self, input, output, operation, number):
@@ -272,7 +312,7 @@ class modules():
             api.RunModule("STANDARD", input+'*'+output, 1, '', '', '', '', 1)
 
     #Added 10/12/2013
-    def surface(self, operation, input, output, output2='na', slope='degrees', azimuth='315', elevation='30'):
+    def surface(self, operation, input, output, output2='#', slope='degrees', azimuth='315', elevation='30'):
         slope_dict = {'degrees':'d', 'percent':'p'}
 
         try:
@@ -282,11 +322,11 @@ class modules():
             exit()
             
         if str(operation) == '1':
-            api.RunModule("SURFACE", '%s*%s*%s*%s'%(operation, input, output, slope), 1, '', '', '', '', 1)
+            api.RunModule("SURFACE", '%s*%s*%s*%s*%s'%(operation, input, output, output2, slope_input), 1, '', '', '', '', 1)
         elif str(operation) == '2':
-            api.RunModule("SURFACE", '%s*%s*%s'%(operation, input, output), 1, '', '', '', '', 1)
+            api.RunModule("SURFACE", '%s*%s*%s*%s'%(operation, input, output, output2), 1, '', '', '', '', 1)
         elif str(operation) == '3':
-            api.RunModule("SURFACE", '%s*%s*%s*%s%s'%(operation, input, output, output2, slope), 1, '', '', '', '', 1)
+            api.RunModule("SURFACE", '%s*%s*%s*%s%s'%(operation, input, output, output2, slope_input), 1, '', '', '', '', 1)
         else:
             if int(azimuth) > 360 or int(azimuth) <= 0:
                 print "Warning, azimuth angles must be between 0-360 degrees."
@@ -312,5 +352,16 @@ class modules():
                 api.RunModule("TOPRANK", input+'*'+mask+'*'+ranktype+'*'+\
                               n_percent+'*'+output+'*'+reverse, 1, '', '',\
                               '', '', 1)
+
+    def transform(self, input, output, transformation):
+        options = range(1, 16)
+
+        try:
+            options.index(transformation)
+        except:
+            print "Warning, input transformation identifier %s not found."%(transformation)
+            exit()
+            
+        api.RunModule("TRANSFORM", '%s*%s*%s'%(input, output, transformation), 1, '', '', '', '', 1)
 
 modules = modules()

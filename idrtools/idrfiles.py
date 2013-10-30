@@ -28,10 +28,10 @@ def fixFile(filename, filetype):
         return '%s.%s'%(filename[:-4],filetype.lower())
 
     #Updated 09/15/2013
-def findFile(filename, filetype, dirlist):
+def findFile(filename, filetype, dirs):
     filename = fixFile(filename, filetype)
     testdir = {}
-    for dir in dirlist:
+    for dir in dirs:
         os.chdir(dir)
         path = os.path.realpath(filename)
         test = os.path.exists(path)
@@ -43,18 +43,14 @@ def findFile(filename, filetype, dirlist):
         print "Error: input file %s does not contain a valid path."%(filename)
         exit()
 
-def getDirectory(path):
-    split = path.split('\\')
-    del(split[-1])
-    return '\\'.join(split)+'\\'
-
 def getDirectories(project = default_project[0]):
     project = IdrisiExplorer(project)
     return project.dirlist
 
 class Documentation(): #
     def __init__(self, filename):
-        dirs = getDirectories()
+        project = IdrisiExplorer()
+        dirlist = getDirectories()
         self.docLines = []
         input_type = filename[-3:].lower() #Added 10/9/2013
         type_dict = {'rst':'rdc','vct':'vdc','avl':'adc'}#Edited 10/9/2013
@@ -65,7 +61,7 @@ class Documentation(): #
             exit()#
         filename = fixFile(filename, doc_type)
         self.filetype = doc_type #Edited 10/9/2013
-        self.path = findFile(filename, doc_type, dirs) #Edited 10/9/2013
+        self.path = findFile(filename, doc_type, dirlist) #Edited 10/29/2013
         
         try:
             readfile = open(self.path, 'r')
