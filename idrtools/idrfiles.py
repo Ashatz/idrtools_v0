@@ -31,11 +31,13 @@ def fixFile(filename, filetype):
 def findFile(filename, filetype, dirs):
     filename = fixFile(filename, filetype)
     testdir = {}
+    if type(dirs) != list:
+        dirs = [dirs]
     for dir in dirs:
         os.chdir(dir)
         path = os.path.realpath(filename)
         test = os.path.exists(path)
-        testdir[test] = path      
+        testdir[test] = path
     try:
         output = testdir[True]
         return output
@@ -43,9 +45,24 @@ def findFile(filename, filetype, dirs):
         print "Error: input file %s does not contain a valid path."%(filename)
         exit()
 
-def getDirectories(project = default_project[0]):
+def getDirectories(project = current_project[0]):
     project = IdrisiExplorer(project)
     return project.dirlist
+
+def WriteRef(input_path, parameters):
+    #Automatically ensure that the input file path has the proper extension.
+    input_path = fixFile(input_path, 'REF')
+    ref_lines = [['ref. system : '],['projection  : '],['datum       : '],\
+                 ['delta WGS84 : '],['ellipsoid   : '],['major s-ax  : '],\
+                 ['minor s-ax  : '],['origin long : '],['origin lat  : '],\
+                 ['origin X    : '],['origin Y    : '],['scale fac   : '],\
+                 ['units       : '],['parameters  : ']]
+    for i in range(len(parameters)):
+        ref_lines[i].append(parameters[i])
+    write_ref = open(input_path, 'w')
+    for line in ref_lines:
+        write_ref.write(line[0]+line[1]+'\n')
+    write_ref.close()
 
 class Documentation(): #
     def __init__(self, filename):
@@ -204,11 +221,11 @@ class Documentation(): #
         return self.attribOut(self.findIndex(attrib), output)
 
     #Created 09/17/2013
-    def MinValue(self, output=None, attrib='min. value  :'):
+    def MinValue(self, output=None, attrib='min. value  : '):
         return self.attribOut(self.findIndex(attrib), output)
 
     #Created 09/17/2013
-    def MaxValue(self, output=None, attrib='max. value  :'):
+    def MaxValue(self, output=None, attrib='max. value  : '):
         return self.attribOut(self.findIndex(attrib), output)
 
     #Created 09/17/2013
@@ -304,10 +321,9 @@ class IdrisiFiles():
     def ReadAvl(self, inputavl, skipline1=True, dirs=getDirectories()):
         #Create .avl file of P/E ratio per Habitat Suitability value
         #Open created .avl file
-        directory = findFile(inputavl, 'avl', dirs)
+        avlFile = findFile(inputavl, 'avl', dirs)
         if inputavl[-4:] != '.avl':
             inputavl = inputavl+'.avl'
-        avlFile = directory + inputavl
         readavl = open(avlFile, 'r')
         #Read line 1 if skipline1=True
         if skipline1 == True:
@@ -366,8 +382,7 @@ class IdrisiFiles():
 
     #Writes attribute values and attribute documentation file to directory
     #Created 10/4/2013
-    def WriteAvl(self, directory, avlfile, values):
-        filetype = raw_input("Please input data type (integer/real).\n")
+    def WriteAvl(self, directory, avlfile, values, filetype):
         good_filetype = ['integer', 'real']
 
         try:
@@ -378,12 +393,11 @@ class IdrisiFiles():
         
         file_name = fixFile(avlfile, 'avl')
         filePath = directory + file_name
-        print filePath
         write_avl = open(filePath, 'w')
         for value in values:
             write_avl.write('%s %s\n'%(value[0], value[1]))
         write_avl.close()
-        self.writeAdc(directory,avlfile, values, filetype)
+        self.WriteAdc(directory,avlfile, values, filetype)
 
     def WriteRcl(self, rclname, directory, reclasslist):
         if rclname[-4:] != '.rcl':

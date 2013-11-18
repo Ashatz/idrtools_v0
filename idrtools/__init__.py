@@ -3,6 +3,7 @@ import os
 from glob import glob
 import re
 from sys import exit
+import shutil
 
 try: #
         api = win32com.client.Dispatch("idrisi32.IdrisiAPIServer")
@@ -29,12 +30,8 @@ def addDumpDir(dir):
 
 #Added 10/11/2013
 def removeDumpDir(dumpdir):
-        rmtree(dumpdir)
+        shutil.rmtree(dumpdir)
 
-
-project_folder = 'C:\\Program Files (x86)\\IDRISI Selva\\Projects\\'
-
-default_project = ["Introductory GIS"]
 default_palette = ["quant"]
 
 from idrtools.idrexplorer import *

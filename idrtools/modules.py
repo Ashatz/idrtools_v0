@@ -88,14 +88,12 @@ class modules():
         api.RunModule("EXPAND", '%s*%s*%s'%(input, output, magnitude), 1, '', '', '', '', 1)
 
     def extract(self, featinput, procinput, summarytype, outtype, output):
-        summarytype = str(summarytype)
-        outtype = str(outype)
-        if outtype == '1':
-            api.RunModule("EXTRACT", featinput+'*'+procinput+'*1*'+summarytype+'*'\
-                          +output, 1, '', '', '', '', 1)
-        if outtype == '2':
-            api.RunModule("EXTRACT", featinput+'*'+procinput+'*3*'+summarytype+'*'\
-                          +output, 1, '', '', '', '', 1)
+        if str(outtype) == '1':
+            api.RunModule("EXTRACT", '%s*%s*1*%s*%s'%\
+                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)
+        if str(outtype) == '2':
+            api.RunModule("EXTRACT", '%s*%s*3*%s*%s'%\
+                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)  
 
     def genericraster(self, input, bands, output, format, interleaving, header_info, \
                       header_size, trailer, data_size, swap_byte, out_reference):
@@ -145,15 +143,12 @@ class modules():
                           +palette, 1, '', '', '', '', 1)
 
     def extract(self, featinput, procinput, summarytype, outtype, output):
-        summarytype = str(summarytype)
-        outtype = str(outype)
-        if outtype == '1':
-            api.RunModule("EXTRACT", featinput+'*'+procinput+'*1*'+summarytype+'*'\
-                          +output, 1, '', '', '', '', 1)
-        if outtype == '2':
-            api.RunModule("EXTRACT", featinput+'*'+procinput+'*3*'+summarytype+'*'\
-                          +output, 1, '', '', '', '', 1)
-
+        if str(outtype) == '1':
+            api.RunModule("EXTRACT", '%s*%s*1*%s*%s'%\
+                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)
+        if str(outtype) == '2':
+            api.RunModule("EXTRACT", '%s*%s*3*%s*%s'%\
+                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)    
     def initial(self, output, outtype, outfile, value, define, definition):
         output = fixFile(output, 'rst')
         if str(define) == '1':

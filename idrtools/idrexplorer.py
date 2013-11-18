@@ -6,12 +6,35 @@ from shutil import rmtree, move
 
 from idrtools import *
 
+project_folder = os.path.dirname(__file__)+'\\Projects\\'
+default_project = 'default'
+current_project = ["CTA_Intensity"]
+
 def listProjects(): #Created 9/25/2013
         os.chdir(project_folder)
         projList = [project[:-4] for project in glob('*.env')]
         return projList
 
 projects = listProjects()#Created 10/01/2013
+
+def getCurrentProject(project=current_project[0]):
+        return current_project[0]
+
+def setCurrentProject(project=current_project[0]):
+        path = os.path.dirname(__file__)+'\\idrexplorer.py'
+        read_init_ = open(path, 'r')
+        lines = read_init_.readlines()
+        read_init_.close()
+        #Changed 10/2/2013
+        for line in lines:
+                if line[:18] == 'current_project = ':
+                        new_line = lines[lines.index(line)][:18]+'["%s"]\n'%(project)
+                        lines[lines.index(line)] = new_line               
+        write_init_ = open(path, 'w')
+        for line in lines:
+                write_init_.write(line)
+        write_init_.close()
+        current_project[0] = project
 
 def openNewProject(path): #Created 9/26/2013
         if path[-1] == '\\':
@@ -24,29 +47,21 @@ def openNewProject(path): #Created 9/26/2013
         projWrite.close()
         projects.append(projName[-1]) #Added 10/01/2013
         projects.sort()
+        setCurrentProject(projName[-1])
 
-def getCurrentProject(project=default_project[0]):
-        return default_project[0]
-
-def setCurrentProject(project=default_project[0]):
-        path = os.path.dirname(__file__)+'\\__init__.py'
-        read_init_ = open(path, 'r')
-        lines = read_init_.readlines()
-        read_init_.close()
-        #Changed 10/2/2013
-        for line in lines:
-                if line[:18] == 'default_project = ':
-                        lines[lines.index(line)] = lines[lines.index(line)][:18]+'["%s"]\n'%(project)
-        write_init_ = open(path, 'w')
-        for line in lines:
-                write_init_.write(line)
-        write_init_.close()
-        default_project[0] = project
+#Added 11/15/2013
+def renameCurrentProject(proj_name, project = current_project[0]):
+        if proj_name[-4:] == '.env':
+                proj_name = proj_name[:-4]
+        os.rename(project_folder+project+'.env', project_folder+proj_name+'.env')
+        projects[projects.index(project)] = proj_name
+        current_project[0] = proj_name
+        
 
 #Updated 10/22/2013       
 def removeProject(project):
         os.chdir(project_folder)
-        if project == default_project[0]:
+        if project == current_project[0]:
                 print "Warning: unable to remove currently active project."
         else:
                 if project in projects:
@@ -58,7 +73,16 @@ def removeProject(project):
                 else:
                         print "Warning: input project does not exist."
 
-
+#Necessary failsafe for starting idrtools - Divert project to default or create default
+#project if removed
+if current_project[0] not in projects:
+        print "Warning: current project path not found...redirecting to default project path."
+        if default_project not in projects:
+                openNewProject('C:\Users\Public\Documents\IDRISI Tutorial Data\Using Idrisi')
+                renameCurrentProject(default_project, current_project[0])
+                setCurrentProject(default_project)
+        else:
+               setCurrentProject(default_project) 
         
 ################################################################################
 '''
@@ -126,7 +150,7 @@ def removeFileType(filetype):
 class IdrisiExplorer(): #Created 9/26/2013
         
 
-        def __init__(self, project = default_project[0]):
+        def __init__(self, project = current_project[0]):
                 if project != getCurrentProject():
                         setCurrentProject(project)
 
@@ -221,16 +245,23 @@ class IdrisiExplorer(): #Created 9/26/2013
                                 if file[:i_1] not in file_keys:
                                         file_keys.append(file[:i_1])
 
-                #Stores all sorted file names that are sorted by iteration and joined        
-                file_output = [] 
+                #Stores all sorted file names that are sorted by iteration and joined
+                file_output = []
                 for key in file_keys:
                         #Store files with identical file key names
                         temp_sort = [file for file in file_list if file[0] == key]
                         #Stores iteration values within files above 
-                        temp_iter = [file[1] for file in temp_sort]
+                        temp_iter = [file[1] for file in temp_sort if file]
+                        #Create temporary integer place holder for '' iteration numbers.
+                        for i in range(len(temp_iter)):
+                                if temp_iter[i] == '':
+                                        temp_iter[i] = 0
                         temp_iter.sort()
                         #Replace old iteration values with new sorted iteration values
                         for i in range(len(temp_sort)):
+                                #Return original '' value to placeholder
+                                if temp_iter[i] == 0:
+                                        temp_iter[i] = ''
                                 temp_sort[i][1] = str(temp_iter[i])
                                 file_output.append(''.join(temp_sort[i]))
                 return file_output
@@ -239,6 +270,7 @@ class IdrisiExplorer(): #Created 9/26/2013
         def ListFile(self, dir, wildcard='', case=True, filetype=filters):
                 os.chdir(dir)
                 tmplist = glob('*')
+                #Create list of filenames according to the filter
                 file_list = [file for file in tmplist if file[file.find('.')+1:].lower() in filetype]
                 sortDict = {}
                 for file in file_list:
