@@ -10,8 +10,13 @@ To begin working with this package, first select the Clone to Desktop icon at th
 install the GitHub application for windows.  This will allow you to easily access the idrtools_v0 repository and 
 clone it to your desktop in the "GitHub" directory within your documents folder.  From there, opent the 'idrtools_v0' 
 directory and copy the "idrtools" directory into the "C:\Python27\Lib\site-packages" directory.  This will allow you
-to import idrtools directly from the Python Shell.  From there, you are ready to experiment with this package.  Please
-report any bugs or concerns via GitHub, and I or any member of the development team will be eager to address the issue.
+to import idrtools directly from the Python Shell.  
+
+Finally, to begin working with the package, open your Idrisi software and navigate to Idrisi Explorer.  Right click anywhere
+within the menu and select the "Change Project Folder" option.  From there, navigate the pull-down menu to the directory
+titled "Projects" within the idrtools package directory and set that as your project folder.  Once this is complete,you are
+ready to experiment with this package.  Please report any bugs or concerns via GitHub, and I or any member of the 
+development team will be eager to address the issue.
 
 Thank you very much, and I hope that you find your time using idrtools both convenient and enjoyable.
 
