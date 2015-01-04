@@ -39,9 +39,9 @@ class modules():
 
         api.RunModule("AREA", '%s*%s*%s*%s'%(input, out_format, unit_type, output), \
                       1, '', '', '', '', 1)
-        
+
     def assign(self, input, avlfile, output):
-        
+
         try:
             avl_test = findFile(avlfile, 'avl', getDirectories())
         except:
@@ -55,7 +55,7 @@ class modules():
         api.RunModule("BUFFER", '%s*%s*%s*%s*%s*%s'%(input, output, target_val, buffer_val,\
                                                      non_buff_val, buff_width),\
                       1, '', '', '', '', 1)
-               
+
     def composite(self, blue, green, red, output, stretch='1', background='2', saturation='1', outType='3'):
         stretch=str(stretch)
         background=str(background)
@@ -93,7 +93,7 @@ class modules():
                           (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)
         if str(outtype) == '2':
             api.RunModule("EXTRACT", '%s*%s*3*%s*%s'%\
-                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)  
+                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)
 
     def genericraster(self, input, bands, output, format, interleaving, header_info, \
                       header_size, trailer, data_size, swap_byte, out_reference):
@@ -117,7 +117,7 @@ class modules():
         if data_size == 'B' or data_size == 'N':
             swap_byte = 'N'
 
-        if header_info == '0':   
+        if header_info == '0':
             api.RunModule("GENERICRASTER", '%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s*%s'%(input, bands, output, format, interleaving, header_info, \
                                                                                                  data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
                                                                                                  ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
@@ -132,7 +132,7 @@ class modules():
                                                                                                     header_size, data_size, swap_byte, ref_list[0], ref_list[1], ref_list[2], \
                                                                                                     ref_list[3], ref_list[4], ref_list[5], ref_list[6], \
                                                                                                     ref_list[7], ref_list[8]), 1, '', '', '', '', 1)
-        
+
     def geotiff(self, process, input, output=input, palette='greyscale'):
         process = str(process)
         if process == '1':
@@ -148,7 +148,8 @@ class modules():
                           (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)
         if str(outtype) == '2':
             api.RunModule("EXTRACT", '%s*%s*3*%s*%s'%\
-                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)    
+                          (featinput, procinput, summarytype, output), 1, '', '', '', '', 1)
+
     def initial(self, output, outtype, outfile, value, define, definition):
         output = fixFile(output, 'rst')
         if str(define) == '1':
@@ -270,13 +271,13 @@ class modules():
             intype = 'v'
         if filetype == 'avl':
             intype = 'a'
-        
+
         try:
             intype in 'iva'
         except:
             print "Error, %s is not an appropriate file type."%(filetype)
             exit()
-        
+
         classtype = str(classtype)
         if classtype == '1':
             print "Sorry not available yet."
@@ -290,7 +291,7 @@ class modules():
             api.RunModule("RECLASS", intype+'*'+input+'*'+output+'*3*'+tmprcl+'*'+str(outtype), \
                           1, '', '', '', '', 1)
         if classtype == '3':
-            api.RunModule("RECLASS", intype+'*'+input+'*'+output+'*1*'+rclist+'*'+outtype,\
+            api.RunModule("RECLASS", intype+'*'+input+'*'+output+'*3*'+rclist+'*'+str(outtype),\
                           1, '', '', '', '', 1)
 
     def scalar(self, input, output, operation, number):
@@ -315,7 +316,7 @@ class modules():
         except:
             print "Warning, must input 'degrees' or 'percent' as acceptable slope measurements."
             exit()
-            
+
         if str(operation) == '1':
             api.RunModule("SURFACE", '%s*%s*%s*%s*%s'%(operation, input, output, output2, slope_input), 1, '', '', '', '', 1)
         elif str(operation) == '2':
@@ -331,7 +332,7 @@ class modules():
                 exit()
             else:
                 api.RunModule("SURFACE", '%s*%s*%s*%s*%s'%(operation, input, output, azimuth, elevation), 1, '', '', '', '', 1)
-                
+
     def toprank(self, input, output, ranktype, n_percent, mask='none', reverse='2', revoutput='N/A'):
         reverse=str(reverse)
         ranktype=str(ranktype)
@@ -356,7 +357,21 @@ class modules():
         except:
             print "Warning, input transformation identifier %s not found."%(transformation)
             exit()
-            
+
         api.RunModule("TRANSFORM", '%s*%s*%s'%(input, output, transformation), 1, '', '', '', '', 1)
+
+    def tstats(self, input, output, output_type, min, max, background_value, obs):
+        #Use binary switch to determine output type string
+        print output_type
+        bin_switch = 0b000
+        if output_type[0] == True:
+            bin_switch += 0b001
+        if output_type[1] == True:
+            bin_switch += 0b010
+        if output_type[2] == True:
+            bin_switch += 0b100
+        api.RunModule("TSTATS", "%s*%s*%s*%s*%s*%s*%s"%(str(bin(bin_switch))[2:], input, output, min, max, background_value, obs),
+                      1, '', '', '', '', 1)
+
 
 modules = modules()

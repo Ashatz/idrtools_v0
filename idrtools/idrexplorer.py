@@ -8,7 +8,7 @@ from idrtools import *
 
 project_folder = os.path.dirname(__file__)+'\\Projects\\'
 default_project = 'default'
-current_project = ["CTA_Intensity"]
+current_project = ["default"]
 
 def listProjects(): #Created 9/25/2013
         os.chdir(project_folder)

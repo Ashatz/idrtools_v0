@@ -3,11 +3,11 @@ Raster Group File Module
 Created by A.J. Shatz
 01/23/2013
 
-This module was designed to allow user functionality with Raster Group Files in IDRISI. 
+This module was designed to allow user functionality with Raster Group Files in IDRISI.
 
 Log:
-07/13/2013 - v1 - module file created and placed in idrtools package. readRgf and writeRgf modules 
-modified using list comprehensions. 
+07/13/2013 - v1 - module file created and placed in idrtools package. readRgf and writeRgf modules
+modified using list comprehensions.
 """
 from idrtools import *
 from idrtools.idrexplorer import *
@@ -17,7 +17,7 @@ from glob import glob
 from sys import exit
 
 #This function formats all input file strings and returns
-#Updated 
+#Updated
 def fixFile(filename, filetype):
     if filename[-4:].lower() != '.'+filetype.lower():
         if filename[-4] == '.' and filename[-3:].lower() != filetype.lower():
@@ -69,17 +69,17 @@ class Documentation(): #
         project = IdrisiExplorer()
         dirlist = getDirectories()
         self.docLines = []
-        input_type = filename[-3:].lower() #Added 10/9/2013
-        type_dict = {'rst':'rdc','vct':'vdc','avl':'adc'}#Edited 10/9/2013
-        try: #
-            doc_type = type_dict[input_type] #Edited 10/9/2013
-        except: #
-            print "Error: please provide valid documentation file extension" #
-            exit()#
+        input_type = os.path.splitext(filename)[-1].lower() 
+        type_dict = {'.rst':'rdc','.vct':'vdc','.avl':'adc'}
+        try: 
+            doc_type = type_dict[input_type] 
+        except: 
+            print "Error: please provide valid documentation file extension" 
+            exit()
         filename = fixFile(filename, doc_type)
-        self.filetype = doc_type #Edited 10/9/2013
-        self.path = findFile(filename, doc_type, dirlist) #Edited 10/29/2013
-        
+        self.filetype = doc_type 
+        self.path = findFile(filename, doc_type, dirlist) 
+
         try:
             readfile = open(self.path, 'r')
         except:
@@ -146,8 +146,8 @@ class Documentation(): #
             writeDocFile.write('%s%s\n'%(line[0],line[1]))
         writeDocFile.close()
         print "Documentation File update was successful."
-                
-            
+
+
     #Created 09/16/2013, Updated 09/25/2013
     def FileFormat(self, output=None, attrib='file format : '):
         return self.attribOut(self.findIndex(attrib), output)
@@ -268,8 +268,11 @@ class Documentation(): #
         return lineageList
 
 
-#Created 10/07/2013    
+#Created 10/07/2013
 class IdrisiFiles():
+
+    def __init__(self, project):
+        self.project = project
 
     '''
     Function - findFile
@@ -281,15 +284,15 @@ class IdrisiFiles():
             default - all working and resource directories within IDRISI
                       Explorer
     '''
-        
+
     #Convert input raster group files to list
     #Parameters:
     #inputfile - name of the input raster group file
     #directories - list of directories present in the
     #Lines 58-60 updated 9/15/2013
-    def ReadRgf(self, filename, dirs=getDirectories()):
-        filename = fixFile(filename,'rgf') 
-        path = findFile(filename,'rgf', dirs) 
+    def ReadRgf(self, filename):
+        filename = fixFile(filename,'rgf')
+        path = findFile(filename,'rgf', self.project.dirlist)
         readfile = open(path, 'r')
         #First line of .rgf files indicates number of filenames
         length = int(readfile.readline())
@@ -297,12 +300,12 @@ class IdrisiFiles():
         for i in range(length):
             list[i] = list[i][:-1]
         return list
-	
+
     #Create raster group file of given name with
-    #list of files in given directory 
+    #list of files in given directory
     #Parameters:
     #directory = output directory
-    #filelist = list of files 
+    #filelist = list of files
     #rgfname - name of the output raster group file
     def WriteRgf(self, directory, filelist, rgfname):
         if rgfname[-4:] != ".rgf":
@@ -318,12 +321,12 @@ class IdrisiFiles():
             writefile.write(file+'\n')
         writefile.close()
 
-    def ReadAvl(self, inputavl, skipline1=True, dirs=getDirectories()):
+    def ReadAvl(self, inputavl, skipline1=True):
         #Create .avl file of P/E ratio per Habitat Suitability value
         #Open created .avl file
-        avlFile = findFile(inputavl, 'avl', dirs)
-        if inputavl[-4:] != '.avl':
-            inputavl = inputavl+'.avl'
+        avlFile = findFile(inputavl, 'avl', self.project.dirlist)
+        if os.path.splitext(avlFile) == '':
+            avlFile = avlFile+'.avl'
         readavl = open(avlFile, 'r')
         #Read line 1 if skipline1=True
         if skipline1 == True:
@@ -390,7 +393,7 @@ class IdrisiFiles():
         except:
             "Warning: please insert valid file type (integer/real)."
             exit()
-        
+
         file_name = fixFile(avlfile, 'avl')
         filePath = directory + file_name
         write_avl = open(filePath, 'w')
@@ -400,14 +403,12 @@ class IdrisiFiles():
         self.WriteAdc(directory,avlfile, values, filetype)
 
     def WriteRcl(self, rclname, directory, reclasslist):
-        if rclname[-4:] != '.rcl':
+        if os.path.splitext(rclname)[-1].lower() != '.rcl':
             rclname = rclname+'.rcl'
-        outputrcl = directory+rclname
+        outputrcl = os.path.join(directory, rclname)
         rclwrite=open(outputrcl, 'w')
         for row in reclasslist:
             rclwrite.write(str(row[0])+' '+str(row[1])+' '+str(row[2])+'\n')
         rclwrite.write('-9999')
         rclwrite.close()
         return outputrcl
-
-IdrisiFiles = IdrisiFiles()
